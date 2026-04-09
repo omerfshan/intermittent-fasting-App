@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function ModalScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Modal</Text>
+      <Text style={styles.text}>Profil</Text>
     </View>
   );
 }
@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
+    fontWeight: "700",
     color: "#FFFFFF",
   },
 });
