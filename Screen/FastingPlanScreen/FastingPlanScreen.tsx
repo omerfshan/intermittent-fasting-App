@@ -1,13 +1,8 @@
 import { FASTING_PLANS, FastingPlan } from "@/Data/FastingPlans";
 import { useFastingPlan } from "@/hooks/useFastingPlan";
 import { router } from "expo-router";
-import {
-        ScrollView,
-        StyleSheet,
-        Text,
-        TouchableOpacity,
-        View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import FastingPlanCard from "./FastingPlanCard";
 
 export default function FastingPlanScreen() {
   const { setSelectedPlan } = useFastingPlan();
@@ -22,17 +17,11 @@ export default function FastingPlanScreen() {
       <Text style={styles.header}>Oruç tutmaya başlamak için birini seçin</Text>
       <ScrollView contentContainerStyle={styles.list}>
         {FASTING_PLANS.map((plan) => (
-          <TouchableOpacity
+          <FastingPlanCard
             key={plan.id}
-            style={styles.card}
+            plan={plan}
             onPress={() => selectPlan(plan)}
-          >
-            <Text style={styles.planTitle}>{plan.title}</Text>
-            <Text style={styles.planDetail}>• {plan.fast} saatlik oruç</Text>
-            <Text style={styles.planDetail}>
-              • {plan.eat} saatlik yeme dönemi
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
     </View>
