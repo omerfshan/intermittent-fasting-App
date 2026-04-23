@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IPlan } from '../Interface/IPlans';
 import { PlanData } from '../Data/PlanData';
 import { PlanList } from '../Components/PlanScreenComponents/PlanList';
-
 
 interface PlanSelectScreenProps {
   onClose?: () => void;
@@ -16,7 +16,7 @@ export default function PlanSelectScreen({ onClose, onConfirm }: PlanSelectScree
   const selectedPlan = PlanData.find((p) => p.id === selectedId)!;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F5F2EE]">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EE' }}>
       <StatusBar barStyle="dark-content" />
 
       <Header onClose={onClose} />
@@ -32,34 +32,41 @@ export default function PlanSelectScreen({ onClose, onConfirm }: PlanSelectScree
   );
 }
 
-// ─── Alt Parçalar ────────────────────────────────────────────
-
 const Header = ({ onClose }: { onClose?: () => void }) => (
-  <View className="px-5 pt-4 pb-2">
-    <TouchableOpacity onPress={onClose} className="mb-3 w-8">
-      <Text className="text-2xl text-gray-500">‹</Text>
+  <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
+    <TouchableOpacity onPress={onClose} style={{ marginBottom: 12, width: 32 }}>
+      <Text style={{ fontSize: 28, color: '#888', lineHeight: 32 }}>‹</Text>
     </TouchableOpacity>
-    <Text className="text-xs font-semibold tracking-widest text-green-600 mb-1">
+    <Text style={{ fontSize: 11, fontWeight: '600', color: '#4CAF50', letterSpacing: 1.2, marginBottom: 4 }}>
       PROTOKOL
     </Text>
-    <Text className="text-3xl font-bold text-[#1A1A1A] mb-2">
+    <Text style={{ fontSize: 28, fontWeight: '700', color: '#1A1A1A', marginBottom: 8, letterSpacing: -0.5 }}>
       Ritmin ne olsun?
     </Text>
-    <Text className="text-sm text-gray-500 leading-5">
-      İstediğin zaman değiştirebilirsin. Başlarken 16:8{'\n'}genellikle en rahatıdır.
+    <Text style={{ fontSize: 14, color: '#888', lineHeight: 20 }}>
+      {'İstediğin zaman değiştirebilirsin. Başlarken 16:8\ngenellikle en rahatıdır.'}
     </Text>
   </View>
 );
 
 const ConfirmButton = ({ onPress }: { onPress: () => void }) => (
-  <View className="px-5 pb-6 pt-3">
+  <View style={{ paddingHorizontal: 20, paddingBottom: 24, paddingTop: 12 }}>
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.9}
-      className="bg-[#1A1A1A] rounded-2xl py-4 items-center flex-row justify-center"
+      style={{
+        backgroundColor: '#1A1A1A',
+        borderRadius: 18,
+        paddingVertical: 18,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <Text className="text-white text-base font-semibold mr-2">Bu ritmi seç</Text>
-      <Text className="text-white text-base">→</Text>
+      <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '600', marginRight: 8 }}>
+        Bu ritmi seç
+      </Text>
+      <Text style={{ color: '#FFF', fontSize: 16 }}>→</Text>
     </TouchableOpacity>
   </View>
 );

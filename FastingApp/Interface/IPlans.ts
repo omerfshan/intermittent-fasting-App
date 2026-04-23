@@ -1,9 +1,6 @@
-export interface IPlan
-{
+export interface IPlan {
   id: number;
-  label: string;       
-  badge: string;     
+  label: string;
+  badge: string;
   description: string;
-  accentColor: string;
-  badgeColor: string;
 }

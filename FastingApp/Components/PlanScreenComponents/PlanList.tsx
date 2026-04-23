@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-
 import { PlanCard } from './PlanCard';
 import { IPlan } from '../../Interface/IPlans';
 
@@ -13,7 +12,7 @@ interface PlanListProps {
 export const PlanList = ({ plans, selectedId, onSelect }: PlanListProps) => {
   return (
     <ScrollView
-      className="flex-1 px-5 pt-3"
+      style={{ flex: 1, paddingHorizontal: 20, paddingTop: 12 }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 16 }}
     >

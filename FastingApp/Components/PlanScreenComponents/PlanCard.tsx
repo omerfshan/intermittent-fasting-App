@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { IPlan } from '../../Interface/IPlans';
-
+import { getPlanColors } from '../../Theme/colors';
 
 interface PlanCardProps {
   plan: IPlan;
@@ -10,6 +10,8 @@ interface PlanCardProps {
 }
 
 export const PlanCard = ({ plan, isSelected, onSelect }: PlanCardProps) => {
+  const colors = getPlanColors(plan.id);
+
   return (
     <TouchableOpacity
       onPress={() => onSelect(plan.id)}
@@ -17,31 +19,37 @@ export const PlanCard = ({ plan, isSelected, onSelect }: PlanCardProps) => {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: isSelected ? plan.badgeColor : '#FFFFFF',
+        backgroundColor: isSelected ? colors.badge : '#FFFFFF',
         borderRadius: 16,
         paddingVertical: 16,
         paddingHorizontal: 16,
         marginBottom: 10,
-        borderWidth: isSelected ? 1.5 : 1,
-        borderColor: isSelected ? plan.accentColor : '#EFEFEF',
+        borderWidth: isSelected ? 1.5 : 0,
+        borderColor: isSelected ? colors.accent : 'transparent',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: isSelected ? 0 : 0.07,
+        shadowRadius: 6,
+        elevation: isSelected ? 0 : 2,
       }}
     >
-      <PlanAvatar plan={plan} />
+      <PlanAvatar label={plan.label} accentColor={colors.accent} />
       <PlanInfo plan={plan} />
       <PlanRadio isSelected={isSelected} />
     </TouchableOpacity>
   );
 };
 
-// ─── Alt Parçalar ────────────────────────────────────────────
+const avatarLabel = (label: string) =>
+  label.includes(':') ? label.split(':')[0] : label;
 
-const PlanAvatar = ({ plan }: { plan: IPlan }) => (
+const PlanAvatar = ({ label, accentColor }: { label: string; accentColor: string }) => (
   <View
     style={{
-      width: 48,
-      height: 48,
+      width: 52,
+      height: 52,
       borderRadius: 14,
-      backgroundColor: plan.accentColor,
+      backgroundColor: accentColor,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 14,
@@ -49,24 +57,24 @@ const PlanAvatar = ({ plan }: { plan: IPlan }) => (
   >
     <Text
       style={{
-        fontSize: plan.label.length > 3 ? 11 : 15,
+        fontSize: avatarLabel(label).length > 3 ? 11 : 16,
         fontWeight: '700',
         color: '#3D3D3D',
         letterSpacing: -0.3,
       }}
     >
-      {plan.label}
+      {avatarLabel(label)}
     </Text>
   </View>
 );
 
 const PlanInfo = ({ plan }: { plan: IPlan }) => (
   <View style={{ flex: 1 }}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
       <Text style={{ fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginRight: 6 }}>
         {plan.label}
       </Text>
-      <Text style={{ fontSize: 10, fontWeight: '600', color: '#888', letterSpacing: 0.5 }}>
+      <Text style={{ fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 0.6 }}>
         {plan.badge}
       </Text>
     </View>
@@ -79,11 +87,11 @@ const PlanInfo = ({ plan }: { plan: IPlan }) => (
 const PlanRadio = ({ isSelected }: { isSelected: boolean }) => (
   <View
     style={{
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
       borderWidth: isSelected ? 0 : 1.5,
-      borderColor: '#D0D0D0',
+      borderColor: '#D5D5D5',
       backgroundColor: isSelected ? '#1A1A1A' : 'transparent',
       alignItems: 'center',
       justifyContent: 'center',
@@ -91,7 +99,7 @@ const PlanRadio = ({ isSelected }: { isSelected: boolean }) => (
     }}
   >
     {isSelected && (
-      <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>✓</Text>
+      <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: -1 }}>✓</Text>
     )}
   </View>
 );
