@@ -12,20 +12,41 @@ export const Colors = {
   success: '#4CAF50',
   border: '#EFEFEF',
   radioInactive: '#D5D5D5',
+
+  // Timer card
+  cardDefault: '#F5EDE0',   // READY state card background (cream)
+  cardRing: '#E8E0D6',      // ring track color
+  cardTick: '#D0C8BF',      // clock tick marks
+
+  // Fasting active button
+  fastingActive: '#F4956A',
+  fastingActiveText: '#1A1A1A',
+
+  // Header / avatar
+  avatarBg: '#F2C4A8',
+  headerAccent: '#5A8A50',  // "GÜNAYDIIN" small caps green
 } as const;
 
 export interface PlanColors {
-  accent: string;
-  badge: string;
+  accent: string;   // ring progress, label, dot
+  badge: string;    // card background when FASTING (light tint)
 }
 
 export const PlanColorMap: Record<number, PlanColors> = {
-  0: { accent: '#A8D5B5', badge: '#E8F5E9' }, // 16:8
-  1: { accent: '#F4A97F', badge: '#FFF3ED' }, // 18:6
-  2: { accent: '#B8A4E8', badge: '#F3EFFD' }, // 20:4
-  3: { accent: '#F4D76F', badge: '#FFFBEA' }, // OMAD
-  4: { accent: '#E8DFD0', badge: '#F5F0E8' }, // Özel
+  0: { accent: '#6A9E6A', badge: '#E4EEE5' }, // 16:8  – sage green
+  1: { accent: '#E8845A', badge: '#FAEEE8' }, // 18:6  – terra cotta
+  2: { accent: '#9B82D4', badge: '#EDE8F8' }, // 20:4  – lavender
+  3: { accent: '#C9A83C', badge: '#FAF4DC' }, // OMAD  – amber
+  4: { accent: '#A09080', badge: '#F0EBE4' }, // Özel  – warm gray
+};
+
+export const PlanBenefitMap: Record<number, string> = {
+  0: 'SİNDİRİM',
+  1: 'KETOZ',
+  2: 'OTOFAJİ',
+  3: 'KETON',
+  4: 'ÖZEL',
 };
 
 export const getPlanColors = (id: number): PlanColors =>
-  PlanColorMap[id] ?? { accent: '#CCCCCC', badge: '#F5F5F5' };
+  PlanColorMap[id] ?? { accent: '#AAAAAA', badge: '#F0F0F0' };

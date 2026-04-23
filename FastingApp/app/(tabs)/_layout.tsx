@@ -31,7 +31,7 @@ export default function TabLayout() {
         options={{ title: 'Oruç' }}
       />
       <Tabs.Screen
-        name="gecmis"
+        name="History"
         options={{ title: 'Geçmiş' }}
       />
     </Tabs>

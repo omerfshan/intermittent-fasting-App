@@ -6,7 +6,7 @@ export default function PlanSelectRoute() {
   const router = useRouter();
 
   const handleConfirm = (plan: IPlan) => {
-    router.back();
+    router.replace({ pathname: '/(tabs)', params: { planId: String(plan.id) } });
   };
 
   return (
