@@ -1,4 +1,4 @@
-import { IPlan } from "../Types/IPlans";
+import { IPlan } from "../Interface/IPlans";
 
 export const PlanData: IPlan[] = [
   {
