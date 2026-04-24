@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import FastingTimerCard, { FastingStatus } from '../../Components/FastingTimerCard';
+import FastingTimerCard from '../../Components/FastingTimerCard';
 import { PlanData } from '../../Data/PlanData';
+import { FastingStatus } from '../../Types/FastingStatus';
 import { Colors } from '../../Theme/colors';
 
 function getGreeting(): string {
