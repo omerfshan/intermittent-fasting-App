@@ -27,6 +27,14 @@ export const Colors = {
   headerAccent: '#5A8A50',  // "GÜNAYDIIN" small caps green
 } as const;
 
+// Onboarding slide backgrounds
+export const OnboardingColors = {
+  slide0Bg: '#C5DDD2',  // mint green
+  slide1Bg: '#F2D4BC',  // peach
+  slide2Bg: '#D8D4E8',  // lavender
+  accent:   '#6A9E6A',  // sage green — PlanColorMap[0].accent ile aynı
+} as const;
+
 export interface PlanColors {
   accent: string;   // ring progress, label, dot
   badge: string;    // card background when FASTING (light tint)
