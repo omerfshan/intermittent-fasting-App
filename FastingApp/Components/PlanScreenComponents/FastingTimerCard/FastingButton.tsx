@@ -3,7 +3,6 @@ import { TouchableOpacity, View, Text } from 'react-native';
 
 import { Colors } from '../../../Theme/colors';
 import { FastingStatus } from '../../../Types/FastingStatus';
-import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   status: FastingStatus;
