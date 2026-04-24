@@ -18,9 +18,11 @@ export const Colors = {
   cardRing: '#E8E0D6',      // ring track color
   cardTick: '#D0C8BF',      // clock tick marks
 
-  // Fasting active button
+ //FastingTimerCard button color
+  fastingDeactive:'#1A1A1A' ,
   fastingActive: '#F4956A',
   fastingActiveText: '#1A1A1A',
+  fastingDeactiveText:'#FFFFFF',
 
   // Header / avatar
   avatarBg: '#F2C4A8',

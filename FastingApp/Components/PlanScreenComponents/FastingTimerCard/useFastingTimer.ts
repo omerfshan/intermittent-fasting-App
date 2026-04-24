@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { FastingStatus } from '../../FastingTimerCard';
+import { FastingStatus } from '../../../Types/FastingStatus';
+
 
 
 export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: FastingStatus) => void) {

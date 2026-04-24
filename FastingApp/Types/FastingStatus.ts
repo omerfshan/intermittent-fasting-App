@@ -1,0 +1,1 @@
+export type FastingStatus = 'READY' | 'FASTING' | 'DONE';

@@ -8,9 +8,10 @@ import { FastingCenterText } from './PlanScreenComponents/FastingTimerCard/Fasti
 import { FastingButton } from './PlanScreenComponents/FastingTimerCard/FastingButton';
 import { InfoCard } from './PlanScreenComponents/FastingTimerCard/InfoCard';
 import { TestSlider } from './PlanScreenComponents/FastingTimerCard/TestSlider';
+import { FastingStatus } from '../Types/FastingStatus';
 
 
-export type FastingStatus = 'READY' | 'FASTING' | 'DONE';
+
 
 function getPlanHours(label: string, customHours = 16): number {
   const match = label.match(/^(\d+):/);

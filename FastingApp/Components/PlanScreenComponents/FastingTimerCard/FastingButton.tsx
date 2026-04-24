@@ -1,17 +1,18 @@
 import React from 'react';
 import { TouchableOpacity, View, Text } from 'react-native';
-import { FastingStatus } from '../../FastingTimerCard';
-import { Colors } from '../../../Theme/colors';
 
+import { Colors } from '../../../Theme/colors';
+import { FastingStatus } from '../../../Types/FastingStatus';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   status: FastingStatus;
-  onPress: () => void;
+        onPress:()=>void;
 }
 
 export function FastingButton({ status, onPress }: Props) {
-  const buttonBg = status === 'READY' ? '#1A1A1A' : Colors.fastingActive;
-  const buttonTextColor = status === 'READY' ? '#FFFFFF' : Colors.fastingActiveText;
+  const buttonBg = status === 'READY' ? Colors.fastingDeactive: Colors.fastingActive;
+  const buttonTextColor = status === 'READY' ? Colors.fastingDeactiveText : Colors.fastingActiveText;
   const buttonLabel = status === 'READY' ? 'Orucu başlat' : status === 'FASTING' ? 'Orucu bitir' : 'Yeni oruç';
 
   return (
