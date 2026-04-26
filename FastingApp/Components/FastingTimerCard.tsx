@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { IPlan } from '../Interface/IPlans';
 import { Colors, getPlanColors } from '../Theme/colors';
@@ -8,6 +8,7 @@ import { FastingCenterText } from './PlanScreenComponents/FastingTimerCard/Fasti
 import { FastingButton } from './PlanScreenComponents/FastingTimerCard/FastingButton';
 import { InfoCard } from './PlanScreenComponents/FastingTimerCard/InfoCard';
 import { TestSlider } from './PlanScreenComponents/FastingTimerCard/TestSlider';
+import { StartTimeModal } from './PlanScreenComponents/FastingTimerCard/StartTimeModal';
 import { FastingStatus } from '../Types/FastingStatus';
 
 
@@ -43,8 +44,18 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
   const goalSeconds = goalHours * 3600;
   const planColors = getPlanColors(plan.id);
 
-  const { status, startedAt, elapsedSeconds, setElapsedSeconds, setStartedAt, changeStatus, handlePress } =
+  const { status, startedAt, elapsedSeconds, setElapsedSeconds, setStartedAt, changeStatus, handlePress, startFasting } =
     useFastingTimer(goalSeconds, onStatusChange);
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const onButtonPress = () => {
+    if (status === 'READY') {
+      setModalVisible(true);
+    } else {
+      handlePress();
+    }
+  };
 
   const progress = Math.min(elapsedSeconds / goalSeconds, 1);
   const percent = Math.round(progress * 100);
@@ -84,8 +95,18 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
             accentColor={planColors.accent}
           />
         </View>
-        <FastingButton status={status} onPress={handlePress} />
+        <FastingButton status={status} onPress={onButtonPress} />
       </View>
+
+      <StartTimeModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={(startTime) => {
+          setModalVisible(false);
+          startFasting(startTime);
+        }}
+        accentColor={planColors.accent}
+      />
 
       {showTestSlider && (
         <TestSlider

@@ -31,12 +31,21 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [status]);
 
-  const handlePress = () => {
-    if (status === 'READY') {
-      setStartedAt(new Date());
-      setElapsedSeconds(0);
+  const startFasting = (startTime: Date) => {
+    const elapsed = Math.floor((Date.now() - startTime.getTime()) / 1000);
+    const clamped = Math.max(0, elapsed);
+    setStartedAt(startTime);
+    if (clamped >= goalSeconds) {
+      setElapsedSeconds(goalSeconds);
+      changeStatus('DONE');
+    } else {
+      setElapsedSeconds(clamped);
       changeStatus('FASTING');
-    } else if (status === 'FASTING') {
+    }
+  };
+
+  const handlePress = () => {
+    if (status === 'FASTING') {
       changeStatus('DONE');
       if (intervalRef.current) clearInterval(intervalRef.current);
     } else {
@@ -46,5 +55,5 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
     }
   };
 
-  return { status, startedAt, elapsedSeconds, setElapsedSeconds, setStartedAt, changeStatus, handlePress };
+  return { status, startedAt, elapsedSeconds, setElapsedSeconds, setStartedAt, changeStatus, handlePress, startFasting };
 }
