@@ -4,6 +4,7 @@ import { FastingStatus } from '../../../Types/FastingStatus';
 export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: FastingStatus) => void) {
   const [status, setStatus] = useState<FastingStatus>('READY');
   const [startedAt, setStartedAt] = useState<Date | null>(null);
+  const [endedAt, setEndedAt] = useState<Date | null>(null);
   const [scheduledStartAt, setScheduledStartAt] = useState<Date | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [waitRemainingSeconds, setWaitRemainingSeconds] = useState(0);
@@ -78,27 +79,51 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
     }
   };
 
+  // Called from EndFastModal when user confirms ending the fast
+  // startOverride: user may have adjusted start time in the modal
+  const endFast = (endTime: Date, startOverride?: Date) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    const effectiveStart = startOverride ?? startedAt;
+    if (startOverride) setStartedAt(startOverride);
+    setEndedAt(endTime);
+    if (effectiveStart) {
+      const elapsed = Math.floor((endTime.getTime() - effectiveStart.getTime()) / 1000);
+      setElapsedSeconds(Math.max(0, Math.min(elapsed, goalSeconds)));
+    }
+    changeStatus('DONE');
+  };
+
+  // Called from EndFastModal "Sil" — discards the fast entirely
+  const cancelFast = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setStartedAt(null);
+    setEndedAt(null);
+    setElapsedSeconds(0);
+    changeStatus('READY');
+  };
+
   const handlePress = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    if (status === 'FASTING') {
-      changeStatus('DONE');
-    } else if (status === 'WAITING') {
+    if (status === 'WAITING') {
       scheduledStartRef.current = null;
       setScheduledStartAt(null);
       setWaitRemainingSeconds(0);
       setWaitTotalSeconds(0);
       changeStatus('READY');
     } else {
-      changeStatus('READY');
+      // DONE → READY
       setStartedAt(null);
+      setEndedAt(null);
       setElapsedSeconds(0);
+      changeStatus('READY');
     }
   };
 
   return {
     status,
     startedAt,
+    endedAt,
     scheduledStartAt,
     elapsedSeconds,
     waitRemainingSeconds,
@@ -108,5 +133,7 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
     changeStatus,
     handlePress,
     startFasting,
+    endFast,
+    cancelFast,
   };
 }

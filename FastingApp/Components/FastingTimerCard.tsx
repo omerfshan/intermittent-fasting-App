@@ -9,6 +9,7 @@ import { FastingButton } from './PlanScreenComponents/FastingTimerCard/FastingBu
 import { InfoCard } from './PlanScreenComponents/FastingTimerCard/InfoCard';
 import { TestSlider } from './PlanScreenComponents/FastingTimerCard/TestSlider';
 import { StartTimeModal } from './PlanScreenComponents/FastingTimerCard/StartTimeModal';
+import { EndFastModal } from './PlanScreenComponents/FastingTimerCard/EndFastModal';
 import { FastingStatus } from '../Types/FastingStatus';
 
 
@@ -45,16 +46,20 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
   const planColors = getPlanColors(plan.id);
 
   const {
-    status, startedAt, scheduledStartAt, elapsedSeconds,
+    status, startedAt, endedAt, scheduledStartAt, elapsedSeconds,
     waitRemainingSeconds, waitTotalSeconds,
-    setElapsedSeconds, setStartedAt, changeStatus, handlePress, startFasting,
+    setElapsedSeconds, setStartedAt, changeStatus, handlePress,
+    startFasting, endFast, cancelFast,
   } = useFastingTimer(goalSeconds, onStatusChange);
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [startModalVisible, setStartModalVisible] = useState(false);
+  const [endModalVisible, setEndModalVisible] = useState(false);
 
   const onButtonPress = () => {
     if (status === 'READY') {
-      setModalVisible(true);
+      setStartModalVisible(true);
+    } else if (status === 'FASTING') {
+      setEndModalVisible(true);
     } else {
       handlePress();
     }
@@ -82,7 +87,9 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
 
   const projectedEnd = new Date(Date.now() + goalSeconds * 1000);
   const displayStartAt = startedAt ?? scheduledStartAt;
-  const actualEnd = displayStartAt ? new Date(displayStartAt.getTime() + goalSeconds * 1000) : null;
+  // endedAt takes priority (user chose custom end); otherwise derive from startedAt + goal
+  const actualEnd = endedAt
+    ?? (startedAt ? new Date(startedAt.getTime() + goalSeconds * 1000) : null);
   const endTime = actualEnd ?? projectedEnd;
 
   const cardBg = isFasting ? planColors.badge : Colors.cardDefault;
@@ -129,14 +136,33 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
       </View>
 
       <StartTimeModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        visible={startModalVisible}
+        onClose={() => setStartModalVisible(false)}
         onConfirm={(startTime) => {
-          setModalVisible(false);
+          setStartModalVisible(false);
           startFasting(startTime);
         }}
         accentColor={planColors.accent}
       />
+
+      {startedAt && (
+        <EndFastModal
+          visible={endModalVisible}
+          onClose={() => setEndModalVisible(false)}
+          onDelete={() => {
+            setEndModalVisible(false);
+            cancelFast();
+          }}
+          onSave={(startTime, endTime) => {
+            setEndModalVisible(false);
+            endFast(endTime, startTime);
+          }}
+          startedAt={startedAt}
+          planLabel={plan.label}
+          planColors={planColors}
+          goalHours={goalHours}
+        />
+      )}
 
       {showTestSlider && (
         <TestSlider
