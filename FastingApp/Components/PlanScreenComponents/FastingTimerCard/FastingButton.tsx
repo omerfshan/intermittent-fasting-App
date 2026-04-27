@@ -12,28 +12,26 @@ interface Props {
 
 export function FastingButton({ status, onPress }: Props) {
   const buttonBg =
-    status === 'READY'
-      ? Colors.fastingDeactive
-      : Colors.fastingActive;
+    status === 'READY' ? Colors.fastingDeactive :
+    status === 'WAITING' ? '#5A5A5A' :
+    Colors.fastingActive;
 
   const buttonTextColor =
-    status === 'READY'
-      ? Colors.fastingDeactiveText
-      : Colors.fastingActiveText;
+    status === 'READY' ? Colors.fastingDeactiveText :
+    status === 'WAITING' ? '#FFFFFF' :
+    Colors.fastingActiveText;
 
   const buttonLabel =
-    status === 'READY'
-      ? 'Orucu başlat'
-      : status === 'FASTING'
-      ? 'Orucu bitir'
-      : 'Yeni oruç';
+    status === 'READY' ? 'Orucu başlat' :
+    status === 'WAITING' ? 'Planı iptal et' :
+    status === 'FASTING' ? 'Orucu bitir' :
+    'Yeni oruç';
 
   const iconName =
-    status === 'READY'
-      ? 'play'
-      : status === 'FASTING'
-      ? 'pause'
-      : 'refresh';
+    status === 'READY' ? 'play' :
+    status === 'WAITING' ? 'close-circle-outline' :
+    status === 'FASTING' ? 'pause' :
+    'refresh';
 
   return (
     <TouchableOpacity

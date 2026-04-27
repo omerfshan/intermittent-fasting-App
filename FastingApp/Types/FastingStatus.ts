@@ -1,1 +1,1 @@
-export type FastingStatus = 'READY' | 'FASTING' | 'DONE';
+export type FastingStatus = 'READY' | 'WAITING' | 'FASTING' | 'DONE';

@@ -16,6 +16,7 @@ function getGreeting(): string {
 
 const STATUS_TITLE: Record<FastingStatus, string> = {
   READY:   'Oruç bekleniyor',
+  WAITING: 'Oruç planlandı',
   FASTING: 'Oruç sürüyor',
   DONE:    'Oruç tamamlandı',
 };

@@ -34,17 +34,17 @@ function ClockTicks({ color }: { color: string }) {
 
 interface Props {
   progress: number;
-  isFasting: boolean;
+  showRing: boolean;
   ringTrack: string;
   ringColor: string;
   tickColor: string;
   accentColor: string;
 }
 
-export function FastingRing({ progress, isFasting, ringTrack, ringColor, tickColor, accentColor }: Props) {
+export function FastingRing({ progress, showRing, ringTrack, ringColor, tickColor, accentColor }: Props) {
   const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
 
-  const endpoint = isFasting && progress > 0.005 ? (() => {
+  const endpoint = showRing && progress > 0.005 ? (() => {
     const angle = progress * 2 * Math.PI - Math.PI / 2;
     return { x: CX + RADIUS * Math.cos(angle), y: CY + RADIUS * Math.sin(angle) };
   })() : null;
@@ -52,7 +52,7 @@ export function FastingRing({ progress, isFasting, ringTrack, ringColor, tickCol
   return (
     <Svg width={RING_SIZE} height={RING_SIZE}>
       <Circle cx={CX} cy={CY} r={RADIUS} stroke={ringTrack} strokeWidth={STROKE_WIDTH} fill="none" />
-      {isFasting && (
+      {showRing && (
         <Circle
           cx={CX} cy={CY} r={RADIUS}
           stroke={ringColor} strokeWidth={STROKE_WIDTH} fill="none"
@@ -63,7 +63,7 @@ export function FastingRing({ progress, isFasting, ringTrack, ringColor, tickCol
       )}
       <Circle cx={CX} cy={CY} r={INNER_RADIUS - 6} fill="#FFFFFF" />
       <ClockTicks color={tickColor} />
-      {isFasting && <Circle cx={CX} cy={CY - RADIUS} r={DOT_R} fill={accentColor} />}
+      {showRing && <Circle cx={CX} cy={CY - RADIUS} r={DOT_R} fill={accentColor} />}
       {endpoint && <Circle cx={endpoint.x} cy={endpoint.y} r={DOT_R} fill={accentColor} />}
     </Svg>
   );

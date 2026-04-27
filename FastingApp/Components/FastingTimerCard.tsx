@@ -44,8 +44,11 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
   const goalSeconds = goalHours * 3600;
   const planColors = getPlanColors(plan.id);
 
-  const { status, startedAt, elapsedSeconds, setElapsedSeconds, setStartedAt, changeStatus, handlePress, startFasting } =
-    useFastingTimer(goalSeconds, onStatusChange);
+  const {
+    status, startedAt, scheduledStartAt, elapsedSeconds,
+    waitRemainingSeconds, waitTotalSeconds,
+    setElapsedSeconds, setStartedAt, changeStatus, handlePress, startFasting,
+  } = useFastingTimer(goalSeconds, onStatusChange);
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -57,23 +60,50 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
     }
   };
 
-  const progress = Math.min(elapsedSeconds / goalSeconds, 1);
-  const percent = Math.round(progress * 100);
+  const isWaiting = status === 'WAITING';
+  const isFasting = status === 'FASTING' || status === 'DONE';
+  const showRing = status !== 'READY';
+
+  // Progress: fasting = elapsed/goal, waiting = time elapsed through wait window
+  const fastProgress = Math.min(elapsedSeconds / goalSeconds, 1);
+  const waitProgress = waitTotalSeconds > 0
+    ? Math.max(0, Math.min(1 - waitRemainingSeconds / waitTotalSeconds, 1))
+    : 0;
+  const progress = isWaiting ? waitProgress : fastProgress;
+
+  const percent = Math.round(fastProgress * 100);
   const remainingSeconds = goalSeconds - elapsedSeconds;
-  const isFasting = status !== 'READY';
+
+  // Ring turns orange when ≤10 minutes remain before fasting starts
+  const WAITING_WARN_SECS = 600;
+  const isWaitingWarning = isWaiting && waitRemainingSeconds <= WAITING_WARN_SECS;
+  const ringColor = isWaitingWarning ? '#F0963A' : planColors.accent;
+  const accentColor = ringColor;
 
   const projectedEnd = new Date(Date.now() + goalSeconds * 1000);
-  const actualEnd = startedAt ? new Date(startedAt.getTime() + goalSeconds * 1000) : null;
+  const displayStartAt = startedAt ?? scheduledStartAt;
+  const actualEnd = displayStartAt ? new Date(displayStartAt.getTime() + goalSeconds * 1000) : null;
   const endTime = actualEnd ?? projectedEnd;
 
   const cardBg = isFasting ? planColors.badge : Colors.cardDefault;
 
-  const centerLabel = status === 'READY' ? `${goalHours} SAATLİK HEDEF` : 'KALAN SÜRE';
-  const centerTime = status === 'READY' ? formatHMS(goalSeconds) : formatHMS(remainingSeconds);
-  const hintText = status === 'READY'
-    ? `Şimdi başlarsan ${formatClock(projectedEnd)}'de biter`
+  const centerLabel =
+    status === 'READY' ? `${goalHours} SAATLİK HEDEF` :
+    status === 'WAITING' ? 'BAŞLAMAYA KALAN' :
+    'KALAN SÜRE';
+
+  const centerTime =
+    status === 'READY' ? formatHMS(goalSeconds) :
+    status === 'WAITING' ? formatHMS(waitRemainingSeconds) :
+    formatHMS(remainingSeconds);
+
+  const hintText =
+    status === 'READY'
+      ? `Şimdi başlarsan ${formatClock(projectedEnd)}'de biter`
+    : status === 'WAITING'
+      ? `${formatClock(scheduledStartAt!)}'de başlıyor`
     : status === 'FASTING'
-    ? `%${percent} tamamlandı · bitiş ${formatClock(endTime)}`
+      ? `%${percent} tamamlandı · bitiş ${formatClock(endTime)}`
     : 'Oruç tamamlandı! 🎉';
 
   return (
@@ -82,17 +112,17 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
         <View className="items-center justify-center mb-5" style={{ width: 280, height: 280 }}>
           <FastingRing
             progress={progress}
-            isFasting={isFasting}
+            showRing={showRing}
             ringTrack={isFasting ? '#D8D8D8' : Colors.cardRing}
-            ringColor={planColors.accent}
+            ringColor={ringColor}
             tickColor={isFasting ? '#C8C8C8' : Colors.cardTick}
-            accentColor={planColors.accent}
+            accentColor={accentColor}
           />
           <FastingCenterText
             label={centerLabel}
             time={centerTime}
             hint={hintText}
-            accentColor={planColors.accent}
+            accentColor={accentColor}
           />
         </View>
         <FastingButton status={status} onPress={onButtonPress} />
@@ -127,8 +157,8 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
       <View className="flex-row gap-3">
         <InfoCard
           title="BAŞLANGIÇ"
-          time={startedAt ? formatClock(startedAt) : '—'}
-          dayLabel={startedAt ? getDayLabel(startedAt) : ''}
+          time={displayStartAt ? formatClock(displayStartAt) : '—'}
+          dayLabel={displayStartAt ? getDayLabel(displayStartAt) : ''}
         />
         <InfoCard
           title="BİTİŞ"
