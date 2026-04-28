@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { FastingStatus } from '../../../Types/FastingStatus';
 
 export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: FastingStatus) => void) {
+  // Eating window = remaining hours in the day after fasting (min 1h)
+  const eatingWindowSeconds = Math.max(3600, 24 * 3600 - goalSeconds);
+
   const [status, setStatus] = useState<FastingStatus>('READY');
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [endedAt, setEndedAt] = useState<Date | null>(null);
@@ -9,14 +12,27 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [waitRemainingSeconds, setWaitRemainingSeconds] = useState(0);
   const [waitTotalSeconds, setWaitTotalSeconds] = useState(0);
+  const [eatingRemainingSeconds, setEatingRemainingSeconds] = useState(0);
+  const [eatingTotalSeconds, setEatingTotalSeconds] = useState(0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Ref avoids stale closure inside the interval callback
   const scheduledStartRef = useRef<Date | null>(null);
+  // Ref for eating window start — avoids stale closure in the interval callback
+  const endedAtRef = useRef<Date | null>(null);
 
   const changeStatus = (next: FastingStatus) => {
     setStatus(next);
     onStatusChange?.(next);
+  };
+
+  const resetToReady = () => {
+    setStartedAt(null);
+    setEndedAt(null);
+    setElapsedSeconds(0);
+    setEatingRemainingSeconds(0);
+    setEatingTotalSeconds(0);
+    endedAtRef.current = null;
+    changeStatus('READY');
   };
 
   useEffect(() => {
@@ -27,6 +43,10 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
         setElapsedSeconds((s) => {
           const next = s + 1;
           if (next >= goalSeconds) {
+            // Record actual end time for the eating window
+            const now = new Date();
+            endedAtRef.current = now;
+            setEndedAt(now);
             changeStatus('DONE');
             clearInterval(intervalRef.current!);
             return goalSeconds;
@@ -34,6 +54,7 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
           return next;
         });
       }, 1000);
+
     } else if (status === 'WAITING') {
       intervalRef.current = setInterval(() => {
         const scheduled = scheduledStartRef.current;
@@ -49,12 +70,42 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
           setWaitRemainingSeconds(remaining);
         }
       }, 1000);
+
+    } else if (status === 'DONE') {
+      // Start eating-window countdown from when fasting ended
+      const eatStart = endedAtRef.current ?? new Date();
+      const eatEnd = new Date(eatStart.getTime() + eatingWindowSeconds * 1000);
+      const initialRemaining = Math.max(0, Math.ceil((eatEnd.getTime() - Date.now()) / 1000));
+
+      if (initialRemaining === 0) {
+        resetToReady();
+        return;
+      }
+
+      setEatingTotalSeconds(eatingWindowSeconds);
+      setEatingRemainingSeconds(initialRemaining);
+
+      intervalRef.current = setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((eatEnd.getTime() - Date.now()) / 1000));
+        setEatingRemainingSeconds(remaining);
+        if (remaining === 0) {
+          clearInterval(intervalRef.current!);
+          resetToReady();
+        }
+      }, 1000);
     }
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [status]);
 
   const startFasting = (startTime: Date) => {
+    // Clear previous fast data (handles starting fresh from DONE/eating state)
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    endedAtRef.current = null;
+    setEndedAt(null);
+    setEatingRemainingSeconds(0);
+    setEatingTotalSeconds(0);
+
     const now = Date.now();
     const startMs = startTime.getTime();
 
@@ -70,6 +121,9 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
       const clamped = Math.max(0, elapsed);
       setStartedAt(startTime);
       if (clamped >= goalSeconds) {
+        const doneAt = new Date(startMs + goalSeconds * 1000);
+        endedAtRef.current = doneAt;
+        setEndedAt(doneAt);
         setElapsedSeconds(goalSeconds);
         changeStatus('DONE');
       } else {
@@ -80,11 +134,11 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
   };
 
   // Called from EndFastModal when user confirms ending the fast
-  // startOverride: user may have adjusted start time in the modal
   const endFast = (endTime: Date, startOverride?: Date) => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     const effectiveStart = startOverride ?? startedAt;
     if (startOverride) setStartedAt(startOverride);
+    endedAtRef.current = endTime;
     setEndedAt(endTime);
     if (effectiveStart) {
       const elapsed = Math.floor((endTime.getTime() - effectiveStart.getTime()) / 1000);
@@ -96,6 +150,7 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
   // Called from EndFastModal "Sil" — discards the fast entirely
   const cancelFast = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    endedAtRef.current = null;
     setStartedAt(null);
     setEndedAt(null);
     setElapsedSeconds(0);
@@ -112,11 +167,7 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
       setWaitTotalSeconds(0);
       changeStatus('READY');
     } else {
-      // DONE → READY
-      setStartedAt(null);
-      setEndedAt(null);
-      setElapsedSeconds(0);
-      changeStatus('READY');
+      resetToReady();
     }
   };
 
@@ -128,6 +179,9 @@ export function useFastingTimer(goalSeconds: number, onStatusChange?: (s: Fastin
     elapsedSeconds,
     waitRemainingSeconds,
     waitTotalSeconds,
+    eatingRemainingSeconds,
+    eatingTotalSeconds,
+    eatingWindowSeconds,
     setElapsedSeconds,
     setStartedAt,
     changeStatus,

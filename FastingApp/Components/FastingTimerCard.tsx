@@ -12,8 +12,8 @@ import { StartTimeModal } from './PlanScreenComponents/FastingTimerCard/StartTim
 import { EndFastModal } from './PlanScreenComponents/FastingTimerCard/EndFastModal';
 import { FastingStatus } from '../Types/FastingStatus';
 
-
-
+const EATING_COLOR = '#F5C430';      // golden amber for eating window ring
+const EATING_BADGE = '#FDF7DC';      // light yellow card background
 
 function getPlanHours(label: string, customHours = 16): number {
   const match = label.match(/^(\d+):/);
@@ -23,7 +23,7 @@ function getPlanHours(label: string, customHours = 16): number {
 }
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
-function formatHMS(s: number) { return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`; }
+function formatHMS(s: number) { return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`; }
 function formatClock(d: Date) { return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 function getDayLabel(date: Date) {
   const today = new Date(), yesterday = new Date(today);
@@ -48,6 +48,7 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
   const {
     status, startedAt, endedAt, scheduledStartAt, elapsedSeconds,
     waitRemainingSeconds, waitTotalSeconds,
+    eatingRemainingSeconds, eatingTotalSeconds, eatingWindowSeconds,
     setElapsedSeconds, setStartedAt, changeStatus, handlePress,
     startFasting, endFast, cancelFast,
   } = useFastingTimer(goalSeconds, onStatusChange);
@@ -56,7 +57,7 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
   const [endModalVisible, setEndModalVisible] = useState(false);
 
   const onButtonPress = () => {
-    if (status === 'READY') {
+    if (status === 'READY' || isDone) {
       setStartModalVisible(true);
     } else if (status === 'FASTING') {
       setEndModalVisible(true);
@@ -65,43 +66,71 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
     }
   };
 
+  // ── State flags ────────────────────────────────────────────────────────────
   const isWaiting = status === 'WAITING';
-  const isFasting = status === 'FASTING' || status === 'DONE';
-  const showRing = status !== 'READY';
+  const isDone    = status === 'DONE';
+  const showRing  = status !== 'READY';
 
-  // Progress: fasting = elapsed/goal, waiting = time elapsed through wait window
+  // ── Progress ───────────────────────────────────────────────────────────────
   const fastProgress = Math.min(elapsedSeconds / goalSeconds, 1);
   const waitProgress = waitTotalSeconds > 0
     ? Math.max(0, Math.min(1 - waitRemainingSeconds / waitTotalSeconds, 1))
     : 0;
-  const progress = isWaiting ? waitProgress : fastProgress;
+  // Eating ring drains from full→empty as eating window passes
+  const eatingProgress = eatingTotalSeconds > 0
+    ? Math.max(0, eatingRemainingSeconds / eatingTotalSeconds)
+    : 0;
 
-  const percent = Math.round(fastProgress * 100);
-  const remainingSeconds = goalSeconds - elapsedSeconds;
+  const progress =
+    isWaiting ? waitProgress :
+    isDone    ? eatingProgress :
+    fastProgress;
 
-  // Ring turns orange when ≤10 minutes remain before fasting starts
+  // ── Ring colours ───────────────────────────────────────────────────────────
   const WAITING_WARN_SECS = 600;
-  const isWaitingWarning = isWaiting && waitRemainingSeconds <= WAITING_WARN_SECS;
-  const ringColor = isWaitingWarning ? '#F0963A' : planColors.accent;
+  const isWaitingWarning  = isWaiting && waitRemainingSeconds <= WAITING_WARN_SECS;
+  const ringColor =
+    isDone           ? EATING_COLOR :
+    isWaitingWarning ? '#F0963A'    :
+    planColors.accent;
   const accentColor = ringColor;
 
+  // ── Card background ────────────────────────────────────────────────────────
+  const cardBg =
+    status === 'FASTING' ? planColors.badge :
+    isDone               ? EATING_BADGE     :
+    Colors.cardDefault;
+
+  // Ring track / tick use muted grey whenever ring is active
+  const ringActive = status === 'FASTING' || isDone;
+
+  // ── Timing helpers ─────────────────────────────────────────────────────────
   const projectedEnd = new Date(Date.now() + goalSeconds * 1000);
   const displayStartAt = startedAt ?? scheduledStartAt;
-  // endedAt takes priority (user chose custom end); otherwise derive from startedAt + goal
   const actualEnd = endedAt
     ?? (startedAt ? new Date(startedAt.getTime() + goalSeconds * 1000) : null);
   const endTime = actualEnd ?? projectedEnd;
 
-  const cardBg = isFasting ? planColors.badge : Colors.cardDefault;
+  const eatingEndTime = endedAt
+    ? new Date(endedAt.getTime() + eatingWindowSeconds * 1000)
+    : null;
+
+  const eatingHours = Math.round(eatingWindowSeconds / 3600);
+
+  // ── Center text ────────────────────────────────────────────────────────────
+  const percent = Math.round(fastProgress * 100);
+  const remainingSeconds = goalSeconds - elapsedSeconds;
 
   const centerLabel =
-    status === 'READY' ? `${goalHours} SAATLİK HEDEF` :
-    status === 'WAITING' ? 'BAŞLAMAYA KALAN' :
+    status === 'READY'   ? `${goalHours} SAATLİK HEDEF` :
+    status === 'WAITING' ? 'BAŞLAMAYA KALAN'             :
+    isDone               ? 'YEME PENCERESİ'              :
     'KALAN SÜRE';
 
   const centerTime =
-    status === 'READY' ? formatHMS(goalSeconds) :
-    status === 'WAITING' ? formatHMS(waitRemainingSeconds) :
+    status === 'READY'   ? formatHMS(goalSeconds)          :
+    status === 'WAITING' ? formatHMS(waitRemainingSeconds)  :
+    isDone               ? formatHMS(eatingRemainingSeconds) :
     formatHMS(remainingSeconds);
 
   const hintText =
@@ -111,7 +140,9 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
       ? `${formatClock(scheduledStartAt!)}'de başlıyor`
     : status === 'FASTING'
       ? `%${percent} tamamlandı · bitiş ${formatClock(endTime)}`
-    : 'Oruç tamamlandı! 🎉';
+    : eatingEndTime
+      ? `Oruç tamamlandı 🎉 · ${formatClock(eatingEndTime)}'de biter`
+      : 'Oruç tamamlandı! 🎉';
 
   return (
     <View className="w-full gap-3">
@@ -120,9 +151,9 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
           <FastingRing
             progress={progress}
             showRing={showRing}
-            ringTrack={isFasting ? '#D8D8D8' : Colors.cardRing}
+            ringTrack={ringActive ? '#D8D8D8' : Colors.cardRing}
             ringColor={ringColor}
-            tickColor={isFasting ? '#C8C8C8' : Colors.cardTick}
+            tickColor={ringActive ? '#C8C8C8' : Colors.cardTick}
             accentColor={accentColor}
           />
           <FastingCenterText
@@ -132,7 +163,9 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
             accentColor={accentColor}
           />
         </View>
-        <FastingButton status={status} onPress={onButtonPress} />
+
+        {/* In DONE state show the button with READY appearance to start a new fast */}
+        <FastingButton status={isDone ? 'READY' : status} onPress={onButtonPress} />
       </View>
 
       <StartTimeModal
@@ -187,9 +220,9 @@ export default function FastingTimerCard({ plan, customHours = 16, onStatusChang
           dayLabel={displayStartAt ? getDayLabel(displayStartAt) : ''}
         />
         <InfoCard
-          title="BİTİŞ"
-          time={formatClock(endTime)}
-          dayLabel={getDayLabel(endTime)}
+          title={isDone ? `YEME (${eatingHours} SA)` : 'BİTİŞ'}
+          time={isDone && eatingEndTime ? formatClock(eatingEndTime) : formatClock(endTime)}
+          dayLabel={isDone && eatingEndTime ? getDayLabel(eatingEndTime) : getDayLabel(endTime)}
         />
       </View>
     </View>

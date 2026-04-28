@@ -18,7 +18,7 @@ const STATUS_TITLE: Record<FastingStatus, string> = {
   READY:   'Oruç bekleniyor',
   WAITING: 'Oruç planlandı',
   FASTING: 'Oruç sürüyor',
-  DONE:    'Oruç tamamlandı',
+  DONE:    'Yeme vakti',
 };
 
 export default function HomeScreen() {
@@ -49,7 +49,12 @@ const [fastingStatus, setFastingStatus] = useState<FastingStatus>('READY');
               activeOpacity={0.7}
             >
               <Text className="text-[12px] font-semibold text-[#555]">
-                {plan.label} · {fastingStatus === 'FASTING' ? 'AKTİF' : 'HAZIR'}
+                {plan.label} · {
+                  fastingStatus === 'FASTING' ? 'AKTİF'  :
+                  fastingStatus === 'WAITING' ? 'BEKL.'  :
+                  fastingStatus === 'DONE'    ? 'YEME'    :
+                  'HAZIR'
+                }
               </Text>
             </TouchableOpacity>
           </View>
